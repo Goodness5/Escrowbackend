@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Register Service</title>
+  </head>
+  <body>
+    <h1>Register a new service</h1>
+    <form id="register-form">
+      <div>
+        <label for="service-name">Name:</label>
+        <input type="text" id="service-name" name="name" required>
+      </div>
+      <div>
+        <label for="service-url">URL:</label>
+        <input type="text" id="service-url" name="url" required>
+      </div>
+      <div>
+        <button type="submit">Register</button>
+      </div>
+    </form>
+    <script>
+      const form = document.querySelector('#register-form');
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        const name = form.elements['name'].value;
+        const url = form.elements['url'].value;
+        const data = {name, url};
+        fetch('/register_service', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        })
+          .then(response => response.json())
+          .then(data => {
+            alert(data.message);
+            form.reset();
+          })
+          .catch(error => {
+            console.error('Error registering service:', error);
+          });
+      });
+    </script>
+  </body>
+</html>

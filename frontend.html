@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Services List</title>
+  </head>
+  <body>
+    <h1>Register a new service</h1>
+    <form id="register-form">
+      <div>
+        <label for="service-name">Name:</label>
+        <input type="text" id="service-name" name="name" required>
+      </div>
+      <div>
+        <label for="service-url">URL:</label>
+        <input type="text" id="service-url" name="url" required>
+      </div>
+      <div>
+        <button type="submit">Register</button>
+      </div>
+    </form>
+    <br><br><br><br>
+    <table id="services-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>URL</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <script>
+      fetch('/127.0.0.1:5000/list_services')
+        .then(response => response.json())
+        .then(data => {
+          const tableBody = document.querySelector('#services-table tbody');
+          data.forEach(service => {
+            const row = tableBody.insertRow(-1);
+            const nameCell = row.insertCell(0);
+            const urlCell = row.insertCell(1);
+            nameCell.textContent = service.name;
+            urlCell.textContent = service.url;
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching services:', error);
+        });
+
+        const form = document.querySelector('#register-form');
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        const name = form.elements['name'].value;
+        const url = form.elements['url'].value;
+        const data = {name, url};
+        fetch('/127.0.0.1:5000/register_service', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        })
+          .then(response => response.json())
+          .then(data => {
+            alert(data.message);
+            form.reset();
+          })
+          .catch(error => {
+            console.error('Error registering service:', error);
+          });
+      });
+    </script>
+
+  </body>
+</html>
