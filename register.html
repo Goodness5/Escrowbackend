@@ -25,7 +25,7 @@
         const name = form.elements['name'].value;
         const url = form.elements['url'].value;
         const data = {name, url};
-        fetch('/register_service', {
+        fetch('http://localhost:8000/register_service', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
