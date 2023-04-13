@@ -88,40 +88,40 @@ class Skill(db.Model):
 
 
 
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    address = data.get('address')
+# @app.route('/login', methods=['POST'])
+# def login():
+#     data = request.get_json()
+#     address = data.get('address')
 
-    if not address:
-        return jsonify({'error': 'Wallet address not provided.'}), 400
+#     if not address:
+#         return jsonify({'error': 'Wallet address not provided.'}), 400
 
-    # Set session cookie to the wallet address
-    session['address'] = address
+#     # Set session cookie to the wallet address
+#     session['address'] = address
 
-    # Check if user exists in the database, if not create new user
-    user = User.query.filter_by(address=address).first()
-    session['logged_in'] = True
-    if not user:
-        new_user = User(address=address)
-        db.session.add(new_user)
-        db.session.commit()
+#     # Check if user exists in the database, if not create new user
+#     user = User.query.filter_by(address=address).first()
+#     session['logged_in'] = True
+#     if not user:
+#         new_user = User(address=address)
+#         db.session.add(new_user)
+#         db.session.commit()
 
-    return jsonify({'message': 'Logged in successfully.'})
+#     return jsonify({'message': 'Logged in successfully.'})
 
 
 
 
 @app.route('/create_profile', methods=['POST'])
-@login_required # require user to be logged in to access this endpoint
 def create_profile():
     data = request.get_json()
 
     username = data.get('username')
     about = data.get('about')
     skill_names = data.get('skills')
+    address = data.get('address')
 
-    user = User.query.filter_by(address=current_user.address).first()
+    user = User.query.filter_by(address=address).first()
 
     if user:
         return jsonify({'error': 'User already exists'})
@@ -146,7 +146,7 @@ def create_profile():
             print(f'Error saving avatar: {e}')
             avatar = None
 
-    user = User(address=current_user.address, avatar=avatar, username=username, about=about)
+    user = User(address=address, avatar=avatar, username=username, about=about)
     db.session.add(user)
     db.session.commit()
 
@@ -236,11 +236,13 @@ def update_profile():
 
 @app.route('/register_service', methods=['POST'])
 def register_service():
-    if 'address' not in session:
-        return jsonify({'error': 'User not logged in.'}), 401
-
     data = request.get_json()
-    address = session['address']
+    address = data.get('address')
+    user = User.query.filter_by(address=address).first()
+    if not user:
+        return jsonify({'message': 'user not found'}), 401
+
+
     service_name = data.get('name')
     service_desc = data.get('description')
     service_image = request.files.get('image_file')
@@ -262,10 +264,12 @@ def register_service():
 # HIRE A DEVELOPER AS BUYER
 @app.route('/hire_developer', methods=['POST'])
 def hire_developer():
-    if 'address' not in session:
-        return jsonify({'error': 'User not logged in.'}), 401
-
     data = request.get_json()
+    address = data.get('address')
+    user = User.query.filter_by(address=address).first()
+    if not user:
+        return jsonify({'message': 'user not found'}), 401
+
     title = data.get('title')
     description = data.get('description')
     time_frame = data.get('time_frame')
@@ -283,8 +287,11 @@ def hire_developer():
 # LIST OF TASKS AVAILABLE TO A USER
 @app.route('/available_tasks', methods=['GET'])
 def get_available_tasks():
-    if 'address' not in session:
-        return jsonify({'error': 'User not logged in.'}), 401
+    data = request.get_json()
+    address = data.get('address')
+    user = User.query.filter_by(address=address).first()
+    if not user:
+        return jsonify({'message': 'user not found'}), 401
 
     developer_address = request.json.get('address')
     developer = User.query.filter_by(address=developer_address).first()
